@@ -117,6 +117,27 @@ export default function App() {
 
     if (!form.nome || !form.cognome) return;
 
+    // Controllo limite ruolo
+    if (!form.assente) {
+
+      const occupati = partecipanti.filter(
+        (p) =>
+          p.giorno === giornoAttivo &&
+          p.ruolo === form.ruolo &&
+          !p.assente
+      ).length;
+
+      const maxRuolo = ruoli[form.ruolo];
+
+      if (occupati >= maxRuolo) {
+        alert(
+          `Il ruolo ${form.ruolo} è completo (${maxRuolo} partecipanti max)`
+        );
+        return;
+      }
+
+    }
+
     const nuovo = {
       nome: form.nome,
       cognome: form.cognome,
@@ -180,6 +201,14 @@ export default function App() {
   ).length;
 
   const presenti = totale - assenti;
+
+  const ruoloPieno =
+    partecipanti.filter(
+      (p) =>
+        p.giorno === giornoAttivo &&
+        p.ruolo === form.ruolo &&
+        !p.assente
+    ).length >= ruoli[form.ruolo];
 
   const exportPDF = () => {
 
@@ -287,7 +316,6 @@ export default function App() {
                 Accesso Admin
               </button>
             </>
-
           ) : (
 
             <div className="text-green-600 font-bold text-lg">
@@ -344,25 +372,26 @@ export default function App() {
 
         {admin && (
 
-  <div className="flex flex-wrap gap-4">
+          <div className="flex flex-wrap gap-4">
 
-    <button
-      onClick={exportPDF}
-      className="bg-red-500 hover:bg-red-600 text-white px-6 py-4 rounded-2xl font-bold shadow-lg"
-    >
-      📄 Export PDF
-    </button>
+            <button
+              onClick={exportPDF}
+              className="bg-red-500 hover:bg-red-600 text-white px-6 py-4 rounded-2xl font-bold shadow-lg"
+            >
+              📄 Export PDF
+            </button>
 
-    <button
-      onClick={exportExcel}
-      className="bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-4 rounded-2xl font-bold shadow-lg"
-    >
-      📊 Export Excel
-    </button>
+            <button
+              onClick={exportExcel}
+              className="bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-4 rounded-2xl font-bold shadow-lg"
+            >
+              📊 Export Excel
+            </button>
 
-  </div>
+          </div>
 
-)}
+        )}
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 
           <div className="bg-white rounded-3xl shadow-xl p-6">
@@ -380,7 +409,6 @@ export default function App() {
               </div>
 
               <FaUsers className="text-4xl text-indigo-500" />
-
             </div>
 
           </div>
@@ -496,9 +524,19 @@ export default function App() {
 
             <button
               onClick={aggiungiPartecipante}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-2xl px-6 py-4 shadow-lg"
+              disabled={!form.assente && ruoloPieno}
+              className={`
+                text-white font-bold rounded-2xl px-6 py-4 shadow-lg transition-all
+                ${
+                  !form.assente && ruoloPieno
+                    ? "bg-red-400 cursor-not-allowed"
+                    : "bg-indigo-600 hover:bg-indigo-700"
+                }
+              `}
             >
-              ➕ AGGIUNGI
+              {!form.assente && ruoloPieno
+                ? "RUOLO PIENO"
+                : "➕ AGGIUNGI"}
             </button>
 
           </div>
@@ -542,7 +580,16 @@ export default function App() {
               >
 
                 <div
-                  className={`bg-gradient-to-r ${roleColors[ruolo]} p-5`}
+                  className={`
+                    p-5
+                    bg-gradient-to-r
+                    ${
+                      ruolo !== "Assenti" &&
+                      lista.filter((p) => !p.assente).length >= ruoli[ruolo]
+                        ? "from-red-500 to-red-300"
+                        : roleColors[ruolo]
+                    }
+                  `}
                 >
 
                   <div className="flex items-center justify-between">
@@ -552,7 +599,9 @@ export default function App() {
                     </h2>
 
                     <div className="bg-white/70 px-3 py-1 rounded-xl font-bold">
-                      {lista.length}
+                      {ruolo === "Assenti"
+                        ? lista.length
+                        : `${lista.length} / ${ruoli[ruolo]}`}
                     </div>
 
                   </div>
