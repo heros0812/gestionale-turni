@@ -44,6 +44,11 @@ export default function App() {
     Assenti: "from-red-500 to-red-300",
   };
 
+  const getStatus = (p) => {
+    if (p.assente) return "Assente";
+    return p.orario === "19" ? "Titolare" : "Riserva";
+  };
+
   const [giornoAttivo, setGiornoAttivo] = React.useState(
     giorniDisponibili[0].data
   );
@@ -117,7 +122,6 @@ export default function App() {
 
     if (!form.nome || !form.cognome) return;
 
-    // Controllo limite ruolo
     if (!form.assente) {
 
       const occupati = partecipanti.filter(
@@ -202,6 +206,14 @@ export default function App() {
 
   const presenti = totale - assenti;
 
+  const titolari = partecipantiFiltrati.filter(
+    (p) => !p.assente && p.orario === "19"
+  ).length;
+
+  const riserve = partecipantiFiltrati.filter(
+    (p) => !p.assente && p.orario !== "19"
+  ).length;
+
   const ruoloPieno =
     partecipanti.filter(
       (p) =>
@@ -226,7 +238,10 @@ export default function App() {
       p.nome,
       p.cognome,
       p.ruolo,
-      p.assente ? "ASSENTE" : `${p.orario}:00`,
+      p.assente
+        ? "ASSENTE"
+        : `${p.orario}:00`,
+      getStatus(p),
     ]);
 
     autoTable(doc, {
@@ -236,6 +251,7 @@ export default function App() {
         "Cognome",
         "Ruolo",
         "Orario",
+        "Status",
       ]],
       body: rows,
     });
@@ -253,6 +269,7 @@ export default function App() {
       Orario: p.assente
         ? "ASSENTE"
         : `${p.orario}:00`,
+      Status: getStatus(p),
     }));
 
     const worksheet = XLSX.utils.json_to_sheet(dati);
@@ -392,7 +409,7 @@ export default function App() {
 
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
 
           <div className="bg-white rounded-3xl shadow-xl p-6">
 
@@ -429,6 +446,34 @@ export default function App() {
 
               <FaCheckCircle className="text-4xl text-emerald-500" />
 
+            </div>
+
+          </div>
+
+          <div className="bg-white rounded-3xl shadow-xl p-6">
+
+            <div>
+              <p className="text-slate-500">
+                Titolari
+              </p>
+
+              <h2 className="text-4xl font-bold text-emerald-600">
+                {titolari}
+              </h2>
+            </div>
+
+          </div>
+
+          <div className="bg-white rounded-3xl shadow-xl p-6">
+
+            <div>
+              <p className="text-slate-500">
+                Riserve
+              </p>
+
+              <h2 className="text-4xl font-bold text-orange-500">
+                {riserve}
+              </h2>
             </div>
 
           </div>
@@ -617,8 +662,26 @@ export default function App() {
                       className="bg-slate-50 border border-slate-200 rounded-2xl p-4"
                     >
 
-                      <div className="font-bold text-lg text-slate-800">
-                        {p.nome} {p.cognome}
+                      <div className="flex items-center justify-between">
+
+                        <div className="font-bold text-lg text-slate-800">
+                          {p.nome} {p.cognome}
+                        </div>
+
+                        {!p.assente && (
+                          <div
+                            className={`px-3 py-1 rounded-xl text-xs font-bold text-white ${
+                              p.orario === "19"
+                                ? "bg-emerald-500"
+                                : "bg-orange-500"
+                            }`}
+                          >
+                            {p.orario === "19"
+                              ? "TITOLARE"
+                              : "RISERVA"}
+                          </div>
+                        )}
+
                       </div>
 
                       {!p.assente && (
