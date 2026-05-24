@@ -342,24 +342,27 @@ export default function App() {
 
         </div>
 
-        <div className="flex flex-wrap gap-4">
+        {admin && (
 
-          <button
-            onClick={exportPDF}
-            className="bg-red-500 hover:bg-red-600 text-white px-6 py-4 rounded-2xl font-bold shadow-lg"
-          >
-            📄 Export PDF
-          </button>
+  <div className="flex flex-wrap gap-4">
 
-          <button
-            onClick={exportExcel}
-            className="bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-4 rounded-2xl font-bold shadow-lg"
-          >
-            📊 Export Excel
-          </button>
+    <button
+      onClick={exportPDF}
+      className="bg-red-500 hover:bg-red-600 text-white px-6 py-4 rounded-2xl font-bold shadow-lg"
+    >
+      📄 Export PDF
+    </button>
 
-        </div>
+    <button
+      onClick={exportExcel}
+      className="bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-4 rounded-2xl font-bold shadow-lg"
+    >
+      📊 Export Excel
+    </button>
 
+  </div>
+
+)}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 
           <div className="bg-white rounded-3xl shadow-xl p-6">
