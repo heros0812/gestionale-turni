@@ -45,8 +45,18 @@ export default function App() {
   };
 
   const getStatus = (p) => {
+
     if (p.assente) return "Assente";
-    return p.orario === "19" ? "Titolare" : "Riserva";
+
+    if (
+      p.orario === "17:30" ||
+      p.orario === "19"
+    ) {
+      return "Titolare";
+    }
+
+    return "Riserva";
+
   };
 
   const [giornoAttivo, setGiornoAttivo] = React.useState(
@@ -110,7 +120,7 @@ export default function App() {
 
   const loginAdmin = () => {
 
-    if (password === "admin123") {
+    if (password === "adminsg") {
       setAdmin(true);
     } else {
       alert("Password errata");
@@ -120,7 +130,10 @@ export default function App() {
 
   const aggiungiPartecipante = async () => {
 
-    if (!form.nome || !form.cognome) return;
+    if (
+      !form.nome.trim() ||
+      !form.cognome.trim()
+    ) return;
 
     if (!form.assente) {
 
@@ -143,8 +156,8 @@ export default function App() {
     }
 
     const nuovo = {
-      nome: form.nome,
-      cognome: form.cognome,
+      nome: form.nome.trim(),
+      cognome: form.cognome.trim(),
       ruolo: form.assente ? "Assenti" : form.ruolo,
       orario: form.orario,
       assente: form.assente,
@@ -159,8 +172,6 @@ export default function App() {
       console.log(error);
       return;
     }
-
-    caricaDati();
 
     setForm({
       nome: "",
@@ -190,7 +201,25 @@ export default function App() {
       return;
     }
 
-    caricaDati();
+  };
+
+  const eliminaTuttiPartecipanti = async () => {
+
+    const conferma = window.confirm(
+      "Vuoi eliminare TUTTI i partecipanti del giorno selezionato?"
+    );
+
+    if (!conferma) return;
+
+    const { error } = await supabase
+      .from("partecipanti")
+      .delete()
+      .eq("giorno", giornoAttivo);
+
+    if (error) {
+      console.log(error);
+      return;
+    }
 
   };
 
@@ -207,17 +236,30 @@ export default function App() {
   const presenti = totale - assenti;
 
   const titolari = partecipantiFiltrati.filter(
-    (p) => !p.assente && p.orario === "19"
+    (p) =>
+      !p.assente &&
+      (
+        p.orario === "17:30" ||
+        p.orario === "19"
+      )
   ).length;
 
   const riserve = partecipantiFiltrati.filter(
-    (p) => !p.assente && p.orario !== "19"
+    (p) =>
+      !p.assente &&
+      p.orario !== "19" &&
+      p.orario !== "17:30"
   ).length;
 
+  const preparazione = partecipantiFiltrati.filter(
+    (p) =>
+      !p.assente &&
+      p.orario === "17:30"
+  );
+
   const ruoloPieno =
-    partecipanti.filter(
+    partecipantiFiltrati.filter(
       (p) =>
-        p.giorno === giornoAttivo &&
         p.ruolo === form.ruolo &&
         !p.assente
     ).length >= ruoli[form.ruolo];
@@ -240,7 +282,7 @@ export default function App() {
       p.ruolo,
       p.assente
         ? "ASSENTE"
-        : `${p.orario}:00`,
+        : `${p.orario}`,
       getStatus(p),
     ]);
 
@@ -268,7 +310,7 @@ export default function App() {
       Ruolo: p.ruolo,
       Orario: p.assente
         ? "ASSENTE"
-        : `${p.orario}:00`,
+        : `${p.orario}`,
       Status: getStatus(p),
     }));
 
@@ -405,11 +447,24 @@ export default function App() {
               📊 Export Excel
             </button>
 
+            <button
+              onClick={eliminaTuttiPartecipanti}
+              className="bg-red-700 hover:bg-red-800 text-white px-6 py-4 rounded-2xl font-bold shadow-lg"
+            >
+              🗑️ Elimina Tutto
+            </button>
+
           </div>
 
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
+        <div
+          className={`grid gap-6 ${
+            admin
+              ? "grid-cols-1 md:grid-cols-5"
+              : "grid-cols-1"
+          }`}
+        >
 
           <div className="bg-white rounded-3xl shadow-xl p-6">
 
@@ -426,77 +481,86 @@ export default function App() {
               </div>
 
               <FaUsers className="text-4xl text-indigo-500" />
+
             </div>
 
           </div>
 
-          <div className="bg-white rounded-3xl shadow-xl p-6">
+          {admin && (
 
-            <div className="flex items-center justify-between">
+            <>
 
-              <div>
-                <p className="text-slate-500">
-                  Presenti
-                </p>
+              <div className="bg-white rounded-3xl shadow-xl p-6">
 
-                <h2 className="text-4xl font-bold">
-                  {presenti}
-                </h2>
+                <div className="flex items-center justify-between">
+
+                  <div>
+                    <p className="text-slate-500">
+                      Presenti
+                    </p>
+
+                    <h2 className="text-4xl font-bold">
+                      {presenti}
+                    </h2>
+                  </div>
+
+                  <FaCheckCircle className="text-4xl text-emerald-500" />
+
+                </div>
+
               </div>
 
-              <FaCheckCircle className="text-4xl text-emerald-500" />
+              <div className="bg-white rounded-3xl shadow-xl p-6">
 
-            </div>
+                <div>
+                  <p className="text-slate-500">
+                    Titolari
+                  </p>
 
-          </div>
+                  <h2 className="text-4xl font-bold text-emerald-600">
+                    {titolari}
+                  </h2>
+                </div>
 
-          <div className="bg-white rounded-3xl shadow-xl p-6">
-
-            <div>
-              <p className="text-slate-500">
-                Titolari
-              </p>
-
-              <h2 className="text-4xl font-bold text-emerald-600">
-                {titolari}
-              </h2>
-            </div>
-
-          </div>
-
-          <div className="bg-white rounded-3xl shadow-xl p-6">
-
-            <div>
-              <p className="text-slate-500">
-                Riserve
-              </p>
-
-              <h2 className="text-4xl font-bold text-orange-500">
-                {riserve}
-              </h2>
-            </div>
-
-          </div>
-
-          <div className="bg-white rounded-3xl shadow-xl p-6">
-
-            <div className="flex items-center justify-between">
-
-              <div>
-                <p className="text-slate-500">
-                  Assenti
-                </p>
-
-                <h2 className="text-4xl font-bold">
-                  {assenti}
-                </h2>
               </div>
 
-              <FaExclamationCircle className="text-4xl text-red-500" />
+              <div className="bg-white rounded-3xl shadow-xl p-6">
 
-            </div>
+                <div>
+                  <p className="text-slate-500">
+                    Riserve
+                  </p>
 
-          </div>
+                  <h2 className="text-4xl font-bold text-orange-500">
+                    {riserve}
+                  </h2>
+                </div>
+
+              </div>
+
+              <div className="bg-white rounded-3xl shadow-xl p-6">
+
+                <div className="flex items-center justify-between">
+
+                  <div>
+                    <p className="text-slate-500">
+                      Assenti
+                    </p>
+
+                    <h2 className="text-4xl font-bold">
+                      {assenti}
+                    </h2>
+                  </div>
+
+                  <FaExclamationCircle className="text-4xl text-red-500" />
+
+                </div>
+
+              </div>
+
+            </>
+
+          )}
 
         </div>
 
@@ -561,6 +625,7 @@ export default function App() {
               }
               className="p-4 rounded-2xl border border-slate-200"
             >
+              <option value="17:30">17:30</option>
               <option value="19">19</option>
               <option value="20">20</option>
               <option value="21">21</option>
@@ -609,13 +674,85 @@ export default function App() {
 
         </div>
 
+        {preparazione.length > 0 && (
+
+          <div className="bg-white rounded-3xl shadow-2xl overflow-hidden">
+
+            <div className="p-5 bg-gradient-to-r from-indigo-500 to-indigo-300">
+
+              <div className="flex items-center justify-between">
+
+                <h2 className="text-2xl font-black text-white">
+                  Preparazione
+                </h2>
+
+                <div className="bg-white/70 px-3 py-1 rounded-xl font-bold">
+                  {preparazione.length}
+                </div>
+
+              </div>
+
+            </div>
+
+            <div className="p-4 space-y-4">
+
+              {preparazione.map((p) => (
+
+                <div
+                  key={p.id}
+                  className="bg-slate-50 border border-slate-200 rounded-2xl p-4"
+                >
+
+                  <div className="flex items-center justify-between">
+
+                    <div className="font-bold text-lg text-slate-800">
+                      {p.nome} {p.cognome}
+                    </div>
+
+                    <div className="bg-indigo-600 text-white px-3 py-1 rounded-xl text-xs font-bold">
+                      PREPARAZIONE
+                    </div>
+
+                  </div>
+
+                  <div className="mt-2 text-slate-500">
+                    Arrivo 17:30
+                  </div>
+
+                </div>
+
+              ))}
+
+            </div>
+
+          </div>
+
+        )}
+
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
 
           {[...Object.keys(ruoli), "Assenti"].map((ruolo) => {
 
-            const lista = partecipantiFiltrati.filter(
-              (p) => p.ruolo === ruolo
-            );
+            const lista = partecipantiFiltrati
+              .filter((p) => p.ruolo === ruolo)
+              .sort((a, b) => {
+
+                if (a.assente && !b.assente) return 1;
+                if (!a.assente && b.assente) return -1;
+
+                if (a.orario === "17:30" && b.orario !== "17:30") return -1;
+                if (a.orario !== "17:30" && b.orario === "17:30") return 1;
+
+                if (a.orario === "19" && b.orario !== "19") return -1;
+                if (a.orario !== "19" && b.orario === "19") return 1;
+
+                if (a.orario !== b.orario) {
+                  return String(a.orario).localeCompare(String(b.orario));
+                }
+
+                return a.cognome.localeCompare(b.cognome);
+
+              });
 
             return (
 
@@ -655,10 +792,10 @@ export default function App() {
 
                 <div className="p-4 space-y-4 min-h-[200px]">
 
-                  {lista.map((p, index) => (
+                  {lista.map((p) => (
 
                     <div
-                      key={index}
+                      key={p.id}
                       className="bg-slate-50 border border-slate-200 rounded-2xl p-4"
                     >
 
@@ -671,12 +808,18 @@ export default function App() {
                         {!p.assente && (
                           <div
                             className={`px-3 py-1 rounded-xl text-xs font-bold text-white ${
-                              p.orario === "19"
+                              (
+                                p.orario === "17:30" ||
+                                p.orario === "19"
+                              )
                                 ? "bg-emerald-500"
                                 : "bg-orange-500"
                             }`}
                           >
-                            {p.orario === "19"
+                            {(
+                              p.orario === "17:30" ||
+                              p.orario === "19"
+                            )
                               ? "TITOLARE"
                               : "RISERVA"}
                           </div>
@@ -687,7 +830,7 @@ export default function App() {
                       {!p.assente && (
 
                         <div className="mt-2 text-slate-500">
-                          Arrivo {p.orario}:00
+                          Arrivo {p.orario}
                         </div>
 
                       )}
