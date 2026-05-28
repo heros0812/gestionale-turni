@@ -662,7 +662,25 @@ const presenti = totale;
 
     <div
       key={ruolo}
-      className="bg-white rounded-3xl shadow-2xl overflow-hidden"
+      className={`rounded-3xl shadow-2xl overflow-hidden border-4 ${
+  ruolo === "Cassa"
+    ? "bg-emerald-50 border-emerald-400"
+    : ruolo === "Spritz"
+    ? "bg-orange-50 border-orange-400"
+    : ruolo === "Birra"
+    ? "bg-yellow-50 border-yellow-400"
+    : ruolo === "Cocktail"
+    ? "bg-pink-50 border-pink-400"
+    : ruolo === "Cantinetta"
+    ? "bg-violet-50 border-violet-400"
+    : ruolo === "Servizio"
+    ? "bg-sky-50 border-sky-400"
+    : ruolo === "Magazzino"
+    ? "bg-slate-100 border-slate-400"
+    : ruolo === "Assenti"
+    ? "bg-red-50 border-red-400"
+    : "bg-white border-slate-300"
+}`}
     >
 
       <div className="p-5 bg-slate-200">
