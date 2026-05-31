@@ -345,30 +345,35 @@ export default function App() {
 
         <div className="bg-white rounded-3xl shadow-xl p-8 space-y-6">
           <div>
-            <h1 className="text-5xl font-black text-slate-800">
-              Gestionale Turni
-            </h1>
+            <h1 className="text-5xl font-black text-emerald-600 drop-shadow-lg">
+  Gestionale Spritz Garden
+</h1>
 
             <p className="text-slate-500 mt-3">
               Dashboard Staff Evento
             </p>
           </div>
 
-          <div className="flex flex-wrap gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
             {giorniDisponibili.map((g) => (
-              <button
-                key={g.id}
-                onClick={() =>
-                  setGiornoAttivo(g.data)
-                }
-                className={`px-5 py-3 rounded-2xl font-bold shadow-lg ${
-                  giornoAttivo === g.data
-                    ? "bg-indigo-600 text-white"
-                    : "bg-white text-slate-700"
-                }`}
-              >
-                {g.label}
-              </button>
+             <button
+  key={g.id}
+  onClick={() => setGiornoAttivo(g.data)}
+  className={`p-4 rounded-2xl shadow-lg transition-all ${
+    giornoAttivo === g.data
+      ? "bg-indigo-600 text-white scale-105"
+      : "bg-white text-slate-700 hover:bg-slate-50"
+  }`}
+>
+  <div className="font-black text-lg">
+    {g.label.split(" ")[0]}
+  </div>
+
+  <div className="text-sm opacity-80">
+    {g.label.substring(4)}
+  </div>
+</button>
+
             ))}
           </div>
 
@@ -622,27 +627,38 @@ export default function App() {
                         {p.nome} {p.cognome}
                       </div>
 
-                      <div className="text-slate-500 mt-1">
-                        {p.ruolo}
-                      </div>
+                      {ruolo === "Assenti" ? (
+  <div className="mt-3">
+    <span className="bg-red-500 text-white px-3 py-1 rounded-xl text-xs font-bold">
+      ASSENTE
+    </span>
+  </div>
+) : (
+  <>
+    <div className="text-slate-500 mt-1">
+      {p.ruolo}
+    </div>
 
-                      <div
-                        className={`mt-3 px-3 py-1 rounded-xl text-xs font-bold text-white inline-block ${
-                          p.orario === "19" ||
-                          p.orario === "17:30"
-                            ? "bg-emerald-500"
-                            : "bg-orange-500"
-                        }`}
-                      >
-                        {p.orario === "19" ||
-                        p.orario === "17:30"
-                          ? "TITOLARE"
-                          : "RISERVA"}
-                      </div>
+    <div
+      className={`mt-3 px-3 py-1 rounded-xl text-xs font-bold text-white inline-block ${
+        p.orario === "19" ||
+        p.orario === "17:30"
+          ? "bg-emerald-500"
+          : "bg-orange-500"
+      }`}
+    >
+      {p.orario === "19" ||
+      p.orario === "17:30"
+        ? "TITOLARE"
+        : "RISERVA"}
+    </div>
 
-                      <div className="mt-3 text-sm font-bold text-slate-700">
-                        Orario: {p.orario}
-                      </div>
+    <div className="mt-3 text-sm font-bold text-slate-700">
+      Orario: {p.orario}
+    </div>
+  </>
+)}
+                        
 
                       {admin && (
                         <button
